@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisim IoT</title>
+    <title>Caisim IoT Elite Pro</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -67,96 +67,3 @@
         <div class="col-md-4 mb-3">
             <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Intensitas Cahaya</h6><div class="chart-container"><canvas id="chartLDR"></canvas></div></div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Status Air (Lantai 1 & 2)</h6><div class="chart-container"><canvas id="chartWater"></canvas></div></div>
-        </div>
-    </div>
-
-    <div class="card card-custom p-4 mb-4">
-        <h5 class="mb-3"><i class="bi bi-table me-2"></i>Live Local Table (Session)</h5>
-        <div class="table-responsive">
-            <table class="table table-hover table-striped" id="localTable">
-                <thead class="table-dark">
-                    <tr><th>Time</th><th>Suhu</th><th>Humi</th><th>LDR Sun</th><th>LDR Grow</th><th>Lt.1</th><th>Lt.2</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="card card-custom p-3 mb-5">
-        <h5 class="mb-3"><i class="bi bi-cloud-check me-2"></i>Permanent Database (Google Sheets)</h5>
-        <div class="ratio ratio-16x9">
-            <iframe src="https://docs.google.com/spreadsheets/d/e/XXXXXXXXXXXXX/pubhtml?widget=true&amp;headers=false"></iframe>
-        </div>
-    </div>
-</div>
-
-<script>
-    // --- FIREBASE CONFIG ---
-    const firebaseConfig = { databaseURL: "https://hidroponik-caisim-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // --- CHART INITIALIZATION ---
-    const chartConfig = (id, label1, label2, color1, color2, isStepped) => new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { 
-            labels: [], 
-            datasets: [
-                { label: label1, data: [], borderColor: color1, backgroundColor: color1+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }, 
-                { label: label2, data: [], borderColor: color2, backgroundColor: color2+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }
-            ] 
-        },
-        options: { 
-            maintainAspectRatio: false, 
-            scales: isStepped ? { y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (v) => v == 1 ? 'ADA' : 'HABIS' } } } : {}
-        }
-    });
-
-    const c1 = chartConfig('chartTH', 'Suhu (°C)', 'Humi (%)', '#dc3545', '#0d6efd', false);
-    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d', false);
-    const c3 = chartConfig('chartWater', 'Air Lt.1', 'Air Lt.2', '#0dcaf0', '#053af2', true); // Stepped
-
-    let historyData = [];
-
-    // --- FIREBASE REALTIME LISTENER ---
-    db.ref('monitoring').on('value', (snap) => {
-        const d = snap.val();
-        if(!d) return;
-        
-        const now = new Date().toLocaleTimeString();
-        document.getElementById('connection-status').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Connected: ${now}`;
-        
-        // Update Sensor UI
-        document.getElementById('val-suhu').innerText = d.suhu;
-        document.getElementById('val-humi').innerText = d.kelembaban;
-        document.getElementById('val-ldr1').innerText = d.ldr_matahari;
-        document.getElementById('val-ldr2').innerText = d.ldr_grow;
-        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "HABIS";
-        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "PENUH" : "KURANG";
-
-        // Logic Aktuator Visual
-        const updateActuator = (id, statId, cond, color) => {
-            const box = document.getElementById(id);
-            box.style.borderLeftColor = cond ? color : '#ccc';
-            box.className = cond ? `card card-custom p-3 border-start border-4 bg-light shadow-sm` : `card card-custom p-3 border-start border-4`;
-            document.getElementById(statId).innerText = cond ? "ON" : "OFF";
-            document.getElementById(statId).className = cond ? "text-success" : "text-muted";
-        };
-        updateActuator('box-kipas', 'stat-kipas', d.suhu > 28, '#dc3545');
-        updateActuator('box-pompa', 'stat-pompa', d.water_lvl2 == 0 && d.water_lvl1 == 1, '#0d6efd');
-        updateActuator('box-grow', 'stat-grow', d.ldr_matahari > 2000, '#ffc107');
-
-        // Update Charts
-        const updateChartData = (c, v1, v2) => {
-            if(c.data.labels.length > 15) { c.data.labels.shift(); c.data.datasets[0].data.shift(); c.data.datasets[1].data.shift(); }
-            c.data.labels.push(now); c.data.datasets[0].data.push(v1); c.data.datasets[1].data.push(v2); c.update();
-        };
-        updateChartData(c1, d.suhu, d.kelembaban);
-        updateChartData(c2, d.ldr_matahari, d.ldr_grow);
-        updateChartData(c3, d.water_lvl1, d.water_lvl2);
-
-        // Update Table
-        const row = `<tr><td>${now}</td><td>${d.suhu}</td><td>${d.kelembaban}</td><td>${d.ldr_matahari}</td><td>${d.ldr_grow}</td><td>${d.water_lvl1}</td><td>${d.water_lvl2}</td></tr>`;
-        document.querySelector('#localTable tbody').insertAdjacentHTML('after
