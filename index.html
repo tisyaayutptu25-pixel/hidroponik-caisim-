@@ -3,40 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisim IoT Elite Pro</title>
+    <title>Caisim IoT Elite Pro V2</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
-        .header-section { background: linear-gradient(135deg, #1d976c 0%, #07a3b2 100%); color: white; padding: 40px 0; border-radius: 0 0 25px 25px; }
-        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .header-section { background: linear-gradient(135deg, #1d976c 0%, #07a3b2 100%); color: white; padding: 40px 0; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; background: white; }
         .card-custom:hover { transform: translateY(-3px); }
-        .chart-container { position: relative; height: 300px; width: 100%; }
-        .table-responsive { max-height: 400px; overflow-y: auto; }
+        .chart-container { position: relative; height: 280px; width: 100%; }
+        .table-responsive { max-height: 350px; overflow-y: auto; border-radius: 10px; }
+        .btn-action { border-radius: 10px; font-weight: 600; padding: 10px 20px; }
     </style>
 </head>
 <body>
 
 <div class="header-section text-center mb-4">
-    <h2>Caisim IoT Elite Pro</h2>
-    <p>Monitoring & Automation Floor Control</p>
-    <div id="connection-status" class="badge bg-light text-dark shadow-sm p-2">Connecting...</div>
+    <h2 class="fw-bold">Caisim IoT Elite Pro</h2>
+    <p>ESP32 Floor Control & Advanced Monitoring</p>
+    <div id="connection-status" class="badge bg-light text-dark shadow-sm p-2"><i class="bi bi-broadcast me-2"></i>Connecting to Firebase...</div>
 </div>
 
 <div class="container mb-5">
     <div class="card card-custom p-4 mb-4">
         <div class="row align-items-center">
-            <div class="col-md-6">
-                <button onclick="controlLogging(true)" class="btn btn-success me-2">START</button>
-                <button onclick="controlLogging(false)" class="btn btn-danger me-2">STOP</button>
-                <button onclick="downloadCSV()" class="btn btn-outline-primary"><i class="bi bi-download"></i> CSV</button>
+            <div class="col-md-7 mb-3 mb-md-0">
+                <button onclick="controlLogging(true)" class="btn btn-success btn-action me-2"><i class="bi bi-play-fill"></i> START</button>
+                <button onclick="controlLogging(false)" class="btn btn-danger btn-action me-2"><i class="bi bi-stop-fill"></i> STOP</button>
+                <button onclick="downloadCSV()" class="btn btn-outline-primary btn-action"><i class="bi bi-file-earmark-spreadsheet"></i> DOWNLOAD CSV</button>
             </div>
-            <div class="col-md-6 mt-3 mt-md-0">
+            <div class="col-md-5">
                 <div class="input-group">
-                    <span class="input-group-text">Interval (ms)</span>
+                    <span class="input-group-text bg-dark text-white border-0">Interval (ms)</span>
                     <input type="number" id="intInput" class="form-control" placeholder="5000">
                     <button onclick="updateInterval()" class="btn btn-dark">Update</button>
                 </div>
@@ -44,44 +45,47 @@
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-danger"><h6>Suhu</h6><h3 id="val-suhu">0</h3>°C</div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-primary"><h6>Hum</h6><h3 id="val-humi">0</h3>%</div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-warning"><h6>LDR Mat</h6><h3 id="val-ldr1">0</h3></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-secondary"><h6>LDR Grow</h6><h3 id="val-ldr2">0</h3></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-info"><h6>Lt. 1</h6><h4 id="val-w1">--</h4></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-info"><h6>Lt. 2</h6><h4 id="val-w2">--</h4></div></div>
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-thermometer-half text-danger"></i><small class="text-muted d-block">Suhu</small><h3 id="val-suhu">0</h3><small>°C</small></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-droplet-half text-primary"></i><small class="text-muted d-block">Lembap</small><h3 id="val-humi">0</h3><small>%</small></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-brightness-high text-warning"></i><small class="text-muted d-block">LDR Sun</small><h3 id="val-ldr1">0</h3></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-lightbulb text-secondary"></i><small class="text-muted d-block">LDR Grow</small><h3 id="val-ldr2">0</h3></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-moisture text-info"></i><small class="text-muted d-block">Tandon Lt.1</small><h4 id="val-w1" class="fw-bold mt-2">--</h4></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-water text-info"></i><small class="text-muted d-block">Tandon Lt.2</small><h4 id="val-w2" class="fw-bold mt-2">--</h4></div></div>
     </div>
 
-    <div class="row g-3 mb-4 text-center">
-        <div class="col-md-4"><div id="box-kipas" class="card card-custom p-3">Kipas: <b id="stat-kipas">OFF</b></div></div>
-        <div class="col-md-4"><div id="box-pompa" class="card card-custom p-3">Pompa: <b id="stat-pompa">OFF</b></div></div>
-        <div class="col-md-4"><div id="box-grow" class="card card-custom p-3">Growlight: <b id="stat-grow">OFF</b></div></div>
+    <div class="row g-3 mb-4 text-center fw-bold">
+        <div class="col-md-4"><div id="box-kipas" class="card card-custom p-3 border-start border-4">Kipas: <span id="stat-kipas">OFF</span></div></div>
+        <div class="col-md-4"><div id="box-pompa" class="card card-custom p-3 border-start border-4">Pompa: <span id="stat-pompa">OFF</span></div></div>
+        <div class="col-md-4"><div id="box-grow" class="card card-custom p-3 border-start border-4">Growlight: <span id="stat-grow">OFF</span></div></div>
     </div>
 
     <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <div class="card card-custom p-3"><h5>Suhu & Kelembaban</h5><div class="chart-container"><canvas id="chartTH"></canvas></div></div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Suhu & Kelembaban</h6><div class="chart-container"><canvas id="chartTH"></canvas></div></div>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card card-custom p-3"><h5>LDR Intensity</h5><div class="chart-container"><canvas id="chartLDR"></canvas></div></div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Intensitas Cahaya</h6><div class="chart-container"><canvas id="chartLDR"></canvas></div></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Status Air (Lantai 1 & 2)</h6><div class="chart-container"><canvas id="chartWater"></canvas></div></div>
         </div>
     </div>
 
     <div class="card card-custom p-4 mb-4">
-        <h5>Local Live Table (Session Only)</h5>
+        <h5 class="mb-3"><i class="bi bi-table me-2"></i>Live Local Table (Session)</h5>
         <div class="table-responsive">
-            <table class="table table-hover" id="localTable">
+            <table class="table table-hover table-striped" id="localTable">
                 <thead class="table-dark">
-                    <tr><th>Time</th><th>Suhu</th><th>Humi</th><th>LDR1</th><th>LDR2</th><th>Lt1</th><th>Lt2</th></tr>
+                    <tr><th>Time</th><th>Suhu</th><th>Humi</th><th>LDR Sun</th><th>LDR Grow</th><th>Lt.1</th><th>Lt.2</th></tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
 
-    <div class="card card-custom p-3">
-        <h5>Cloud Database (Google Sheets)</h5>
+    <div class="card card-custom p-3 mb-5">
+        <h5 class="mb-3"><i class="bi bi-cloud-check me-2"></i>Permanent Database (Google Sheets)</h5>
         <div class="ratio ratio-16x9">
             <iframe src="https://docs.google.com/spreadsheets/d/e/XXXXXXXXXXXXX/pubhtml?widget=true&amp;headers=false"></iframe>
         </div>
@@ -89,74 +93,70 @@
 </div>
 
 <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = { databaseURL: "https://caisim-project-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Init Charts
-    const chartConfig = (id, label1, label2, color1, color2) => new Chart(document.getElementById(id), {
+    // --- CHART INITIALIZATION ---
+    const chartConfig = (id, label1, label2, color1, color2, isStepped) => new Chart(document.getElementById(id), {
         type: 'line',
-        data: { labels: [], datasets: [{ label: label1, data: [], borderColor: color1, tension: 0.3 }, { label: label2, data: [], borderColor: color2, tension: 0.3 }] },
-        options: { maintainAspectRatio: false }
+        data: { 
+            labels: [], 
+            datasets: [
+                { label: label1, data: [], borderColor: color1, backgroundColor: color1+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }, 
+                { label: label2, data: [], borderColor: color2, backgroundColor: color2+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }
+            ] 
+        },
+        options: { 
+            maintainAspectRatio: false, 
+            scales: isStepped ? { y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (v) => v == 1 ? 'ADA' : 'HABIS' } } } : {}
+        }
     });
-    const c1 = chartConfig('chartTH', 'Suhu', 'Humi', '#dc3545', '#0d6efd');
-    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d');
+
+    const c1 = chartConfig('chartTH', 'Suhu (°C)', 'Humi (%)', '#dc3545', '#0d6efd', false);
+    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d', false);
+    const c3 = chartConfig('chartWater', 'Air Lt.1', 'Air Lt.2', '#0dcaf0', '#053af2', true); // Stepped
 
     let historyData = [];
 
+    // --- FIREBASE REALTIME LISTENER ---
     db.ref('monitoring').on('value', (snap) => {
         const d = snap.val();
         if(!d) return;
         
-        document.getElementById('connection-status').innerText = "System Online: " + new Date().toLocaleTimeString();
+        const now = new Date().toLocaleTimeString();
+        document.getElementById('connection-status').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Connected: ${now}`;
         
-        // Update UI
+        // Update Sensor UI
         document.getElementById('val-suhu').innerText = d.suhu;
         document.getElementById('val-humi').innerText = d.kelembaban;
         document.getElementById('val-ldr1').innerText = d.ldr_matahari;
         document.getElementById('val-ldr2').innerText = d.ldr_grow;
-        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "EMPTY";
-        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "FULL" : "LOW";
+        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "HABIS";
+        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "PENUH" : "KURANG";
 
-        // Logic Aktuator (Warna Card)
-        const updateBox = (id, statId, cond) => {
-            document.getElementById(id).className = cond ? "card card-custom p-3 bg-success text-white" : "card card-custom p-3 bg-white";
+        // Logic Aktuator Visual
+        const updateActuator = (id, statId, cond, color) => {
+            const box = document.getElementById(id);
+            box.style.borderLeftColor = cond ? color : '#ccc';
+            box.className = cond ? `card card-custom p-3 border-start border-4 bg-light shadow-sm` : `card card-custom p-3 border-start border-4`;
             document.getElementById(statId).innerText = cond ? "ON" : "OFF";
+            document.getElementById(statId).className = cond ? "text-success" : "text-muted";
         };
-        updateBox('box-kipas', 'stat-kipas', d.suhu > 28);
-        updateBox('box-pompa', 'stat-pompa', d.water_lvl2 == 0 && d.water_lvl1 == 1);
-        updateBox('box-grow', 'stat-grow', d.ldr_matahari > 2000);
+        updateActuator('box-kipas', 'stat-kipas', d.suhu > 28, '#dc3545');
+        updateActuator('box-pompa', 'stat-pompa', d.water_lvl2 == 0 && d.water_lvl1 == 1, '#0d6efd');
+        updateActuator('box-grow', 'stat-grow', d.ldr_matahari > 2000, '#ffc107');
 
         // Update Charts
-        const now = new Date().toLocaleTimeString();
-        const updateChart = (c, v1, v2) => {
-            if(c.data.labels.length > 10) { c.data.labels.shift(); c.data.datasets[0].data.shift(); c.data.datasets[1].data.shift(); }
+        const updateChartData = (c, v1, v2) => {
+            if(c.data.labels.length > 15) { c.data.labels.shift(); c.data.datasets[0].data.shift(); c.data.datasets[1].data.shift(); }
             c.data.labels.push(now); c.data.datasets[0].data.push(v1); c.data.datasets[1].data.push(v2); c.update();
         };
-        updateChart(c1, d.suhu, d.kelembaban);
-        updateChart(c2, d.ldr_matahari, d.ldr_grow);
+        updateChartData(c1, d.suhu, d.kelembaban);
+        updateChartData(c2, d.ldr_matahari, d.ldr_grow);
+        updateChartData(c3, d.water_lvl1, d.water_lvl2);
 
         // Update Table
         const row = `<tr><td>${now}</td><td>${d.suhu}</td><td>${d.kelembaban}</td><td>${d.ldr_matahari}</td><td>${d.ldr_grow}</td><td>${d.water_lvl1}</td><td>${d.water_lvl2}</td></tr>`;
-        document.querySelector('#localTable tbody').insertAdjacentHTML('afterbegin', row);
-        
-        // Save for CSV
-        historyData.push([now, d.suhu, d.kelembaban, d.ldr_matahari, d.ldr_grow, d.water_lvl1, d.water_lvl2]);
-    });
-
-    function controlLogging(st) { db.ref('settings').update({ isLogging: st }); }
-    function updateInterval() { db.ref('settings').update({ interval: parseInt(document.getElementById('intInput').value) }); }
-
-    function downloadCSV() {
-        let csv = 'Time,Suhu,Humi,LDR1,LDR2,Lt1,Lt2\n';
-        historyData.forEach(r => csv += r.join(',') + '\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'caisim_data.csv');
-        a.click();
-    }
-</script>
-</body>
-</html>
+        document.querySelector('#localTable tbody').insertAdjacentHTML('after
