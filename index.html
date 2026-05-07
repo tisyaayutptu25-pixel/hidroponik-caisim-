@@ -3,157 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisim IoT Elite Dashboard</title>
+    <title>Caisim IoT Elite Pro</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-
     <style>
-        :root { --primary-green: #1d976c; --dark-bg: #121212; }
-        body { background-color: #f0f4f3; font-family: 'Poppins', sans-serif; }
-        .header-section { 
-            background: linear-gradient(135deg, #1d976c 0%, #93f9b9 100%);
-            color: white; padding: 50px 0; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .card-monitor {
-            border: none; border-radius: 20px; transition: transform 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
-        .card-monitor:hover { transform: translateY(-5px); }
-        .status-badge { padding: 8px 15px; border-radius: 50px; font-weight: 600; font-size: 0.8rem; }
-        .btn-control { border-radius: 12px; padding: 10px 25px; font-weight: 600; }
-        .chart-container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .header-section { background: linear-gradient(135deg, #1d976c 0%, #07a3b2 100%); color: white; padding: 40px 0; border-radius: 0 0 25px 25px; }
+        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card-custom:hover { transform: translateY(-3px); }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .table-responsive { max-height: 400px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-<div class="header-section text-center mb-5">
-    <h1 class="display-5 fw-bold">Caisim Smart Hydroponic</h1>
-    <p class="lead">ESP32 Floor Control & Monitoring System</p>
-    <span id="log-status" class="status-badge bg-light text-success shadow-sm">
-        <i class="bi bi-cpu-fill me-2"></i>System Online
-    </span>
+<div class="header-section text-center mb-4">
+    <h2>Caisim IoT Elite Pro</h2>
+    <p>Monitoring & Automation Floor Control</p>
+    <div id="connection-status" class="badge bg-light text-dark shadow-sm p-2">Connecting...</div>
 </div>
 
 <div class="container mb-5">
+    <div class="card card-custom p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <button onclick="controlLogging(true)" class="btn btn-success me-2">START</button>
+                <button onclick="controlLogging(false)" class="btn btn-danger me-2">STOP</button>
+                <button onclick="downloadCSV()" class="btn btn-outline-primary"><i class="bi bi-download"></i> CSV</button>
+            </div>
+            <div class="col-md-6 mt-3 mt-md-0">
+                <div class="input-group">
+                    <span class="input-group-text">Interval (ms)</span>
+                    <input type="number" id="intInput" class="form-control" placeholder="5000">
+                    <button onclick="updateInterval()" class="btn btn-dark">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-danger"><h6>Suhu</h6><h3 id="val-suhu">0</h3>°C</div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-primary"><h6>Hum</h6><h3 id="val-humi">0</h3>%</div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-warning"><h6>LDR Mat</h6><h3 id="val-ldr1">0</h3></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-secondary"><h6>LDR Grow</h6><h3 id="val-ldr2">0</h3></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-info"><h6>Lt. 1</h6><h4 id="val-w1">--</h4></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3 text-center text-info"><h6>Lt. 2</h6><h4 id="val-w2">--</h4></div></div>
+    </div>
+
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4"><div id="box-kipas" class="card card-custom p-3">Kipas: <b id="stat-kipas">OFF</b></div></div>
+        <div class="col-md-4"><div id="box-pompa" class="card card-custom p-3">Pompa: <b id="stat-pompa">OFF</b></div></div>
+        <div class="col-md-4"><div id="box-grow" class="card card-custom p-3">Growlight: <b id="stat-grow">OFF</b></div></div>
+    </div>
+
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card card-monitor p-4">
-                <h5 class="mb-3"><i class="bi bi-sliders me-2"></i>Command Center</h5>
-                <div class="d-flex flex-wrap gap-3 align-items-center">
-                    <button onclick="updateLogging(true)" class="btn btn-success btn-control">START LOGGING</button>
-                    <button onclick="updateLogging(false)" class="btn btn-danger btn-control">STOP LOGGING</button>
-                    <div class="input-group" style="max-width: 250px;">
-                        <input type="number" id="inputInterval" class="form-control" placeholder="Interval (ms)">
-                        <button onclick="setInterval()" class="btn btn-dark">Set</button>
-                    </div>
-                    <div class="ms-auto text-muted">
-                        <small>Last Update: <span id="lastseen">--:--:--</span></small>
-                    </div>
-                </div>
-            </div>
+        <div class="col-md-6 mb-3">
+            <div class="card card-custom p-3"><h5>Suhu & Kelembaban</h5><div class="chart-container"><canvas id="chartTH"></canvas></div></div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card card-custom p-3"><h5>LDR Intensity</h5><div class="chart-container"><canvas id="chartLDR"></canvas></div></div>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card card-monitor p-4 text-center">
-                <i class="bi bi-thermometer-half text-danger fs-1"></i>
-                <h6 class="text-muted mt-2">Suhu Udara</h6>
-                <h2 id="val-suhu" class="fw-bold">0</h2><small>°C</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-monitor p-4 text-center">
-                <i class="bi bi-droplet-fill text-primary fs-1"></i>
-                <h6 class="text-muted mt-2">Kelembaban</h6>
-                <h2 id="val-humi" class="fw-bold">0</h2><small>%</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-monitor p-4 text-center">
-                <i class="bi bi-sun-fill text-warning fs-1"></i>
-                <h6 class="text-muted mt-2">LDR Matahari</h6>
-                <h2 id="val-ldr-sun" class="fw-bold">0</h2><small>Lux/Raw</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-monitor p-4 text-center">
-                <i class="bi bi-water text-info fs-1"></i>
-                <h6 class="text-muted mt-2">Tandon Lt.1</h6>
-                <h4 id="val-water-1" class="fw-bold mt-2">--</h4>
-            </div>
+    <div class="card card-custom p-4 mb-4">
+        <h5>Local Live Table (Session Only)</h5>
+        <div class="table-responsive">
+            <table class="table table-hover" id="localTable">
+                <thead class="table-dark">
+                    <tr><th>Time</th><th>Suhu</th><th>Humi</th><th>LDR1</th><th>LDR2</th><th>Lt1</th><th>Lt2</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 
-    <div class="row mb-5">
-        <div class="col-md-4">
-            <div class="card card-monitor p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6>Kipas Pendingin</h6>
-                        <h5 id="status-kipas">OFF</h5>
-                    </div>
-                    <i id="icon-kipas" class="bi bi-fan fs-1 text-secondary"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-monitor p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6>Pompa Nutrisi</h6>
-                        <h5 id="status-pompa">OFF</h5>
-                    </div>
-                    <i id="icon-pompa" class="bi bi-activity fs-1 text-secondary"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-monitor p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6>Growlight</h6>
-                        <h5 id="status-grow">OFF</h5>
-                    </div>
-                    <i id="icon-grow" class="bi bi-lightbulb-fill fs-1 text-secondary"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mb-5">
-        <div class="col-12 chart-container">
-            <h5>Monitoring Graphics</h5>
-            <canvas id="mainChart" height="100"></canvas>
-        </div>
-    </div>
-
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="card card-monitor p-4">
-                <h5 class="mb-3">Permanent Database (Google Sheets History)</h5>
-                <div class="ratio ratio-21x9">
-                    <iframe src="https://docs.google.com/spreadsheets/d/e/XXXXXXXXX/pubhtml?widget=true&amp;headers=false"></iframe>
-                </div>
-            </div>
+    <div class="card card-custom p-3">
+        <h5>Cloud Database (Google Sheets)</h5>
+        <div class="ratio ratio-16x9">
+            <iframe src="https://docs.google.com/spreadsheets/d/e/XXXXXXXXXXXXX/pubhtml?widget=true&amp;headers=false"></iframe>
         </div>
     </div>
 </div>
 
 <script>
-    // --- KONFIGURASI FIREBASE ---
-    const firebaseConfig = {
-        databaseURL: "https://caisim-project-default-rtdb.asia-southeast1.firebasedatabase.app/"
-    };
+    const firebaseConfig = { databaseURL: "https://caisim-project-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- REALTIME MONITORING ---
-    db.ref('monitoring').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if(!data) return;
+    // Init Charts
+    const chartConfig = (id, label1, label2, color1, color2) => new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: label1, data: [], borderColor: color1, tension: 0.3 }, { label: label2, data: [], borderColor: color2, tension: 0.3 }] },
+        options: { maintainAspectRatio: false }
+    });
+    const c1 = chartConfig('chartTH', 'Suhu', 'Humi', '#dc3545', '#0d6efd');
+    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d');
 
-        // Update Sensor
-        document.getElementById('val-suhu').innerText = data.suhu;
+    let historyData = [];
+
+    db.ref('monitoring').on('value', (snap) => {
+        const d = snap.val();
+        if(!d) return;
+        
+        document.getElementById('connection-status').innerText = "System Online: " + new Date().toLocaleTimeString();
+        
+        // Update UI
+        document.getElementById('val-suhu').innerText = d.suhu;
+        document.getElementById('val-humi').innerText = d.kelembaban;
+        document.getElementById('val-ldr1').innerText = d.ldr_matahari;
+        document.getElementById('val-ldr2').innerText = d.ldr_grow;
+        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "EMPTY";
+        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "FULL" : "LOW";
+
+        // Logic Aktuator (Warna Card)
+        const updateBox = (id, statId, cond) => {
+            document.getElementById(id).className = cond ? "card card-custom p-3 bg-success text-white" : "card card-custom p-3 bg-white";
+            document.getElementById(statId).innerText = cond ? "ON" : "OFF";
+        };
+        updateBox('box-kipas', 'stat-kipas', d.suhu > 28);
+        updateBox('box-pompa', 'stat-pompa', d.water_lvl2 == 0 && d.water_lvl1 == 1);
+        updateBox('box-grow', 'stat-grow', d.ldr_matahari > 2000);
+
+        // Update Charts
+        const now = new Date().toLocaleTimeString();
+        const updateChart = (c, v1, v2) => {
+            if(c.data.labels.length > 10) { c.data.labels.shift(); c.data.datasets[0].data.shift(); c.data.datasets[1].data.shift(); }
+            c.data.labels.push(now); c.data.datasets[0].data.push(v1); c.data.datasets[1].data.push(v2); c.update();
+        };
+        updateChart(c1, d.suhu, d.kelembaban);
+        updateChart(c2, d.ldr_matahari, d.ldr_grow);
+
+        // Update Table
+        const row = `<tr><td>${now}</td><td>${d.suhu}</td><td>${d.kelembaban}</td><td>${d.ldr_matahari}</td><td>${d.ldr_grow}</td><td>${d.water_lvl1}</td><td>${d.water_lvl2}</td></tr>`;
+        document.querySelector('#localTable tbody').insertAdjacentHTML('afterbegin', row);
+        
+        // Save for CSV
+        historyData.push([now, d.suhu, d.kelembaban, d.ldr_matahari, d.ldr_grow, d.water_lvl1, d.water_lvl2]);
+    });
+
+    function controlLogging(st) { db.ref('settings').update({ isLogging: st }); }
+    function updateInterval() { db.ref('settings').update({ interval: parseInt(document.getElementById('intInput').value) }); }
+
+    function downloadCSV() {
+        let csv = 'Time,Suhu,Humi,LDR1,LDR2,Lt1,Lt2\n';
+        historyData.forEach(r => csv += r.join(',') + '\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'caisim_data.csv');
+        a.click();
+    }
+</script>
+</body>
+</html>
