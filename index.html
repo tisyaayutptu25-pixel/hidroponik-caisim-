@@ -87,13 +87,13 @@
     <div class="card card-custom p-3 mb-5">
         <h5 class="mb-3"><i class="bi bi-cloud-check me-2"></i>Permanent Database (Google Sheets)</h5>
         <div class="ratio ratio-16x9">
-            <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vREUv72D7yU9zY1U6f03Z_r7_b-v6XlpMYXvrxdYYEsivGDKQPwVSA/pubhtml?widget=true&amp;headers=false"></iframe>
+            <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhuHtxJpUKyy5ieBP2uX3w2iE4QoC1G9D6NwPzpx_6ZS0XCC8BOozD54pd2X7inzw_L-reIZnnYr8J/pubhtml?widget=true&amp;headers=false"></iframe>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. FIREBASE CONFIG (Updated to Hidroponik Caisim) ---
+    // --- 1. FIREBASE CONFIG ---
     const firebaseConfig = { 
         databaseURL: "https://hidroponik-caisim-default-rtdb.asia-southeast1.firebasedatabase.app/" 
     };
@@ -112,98 +112,4 @@
         },
         options: { 
             maintainAspectRatio: false, 
-            scales: isStepped ? { y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (v) => v == 1 ? 'ADA' : 'HABIS' } } } : {}
-        }
-    });
-
-    const c1 = chartConfig('chartTH', 'Suhu (°C)', 'Humi (%)', '#dc3545', '#0d6efd', false);
-    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d', false);
-    const c3 = chartConfig('chartWater', 'Air Lt.1', 'Air Lt.2', '#0dcaf0', '#053af2', true);
-
-    let historyData = [];
-
-    // Helper function for charts
-    const updateChartData = (c, v1, v2, time) => {
-        if(c.data.labels.length > 15) { 
-            c.data.labels.shift(); 
-            c.data.datasets[0].data.shift(); 
-            c.data.datasets[1].data.shift(); 
-        }
-        c.data.labels.push(time); 
-        c.data.datasets[0].data.push(v1); 
-        c.data.datasets[1].data.push(v2); 
-        c.update();
-    };
-
-    // --- 3. FIREBASE REALTIME LISTENER (OPSI B: PATH 'sensor') ---
-    db.ref('sensor').on('value', (snap) => {
-        const d = snap.val();
-        if(!d) return;
-        
-        const now = new Date().toLocaleTimeString();
-        document.getElementById('connection-status').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Connected: ${now}`;
-        
-        // Update Sensor UI
-        document.getElementById('val-suhu').innerText = d.suhu || 0;
-        document.getElementById('val-humi').innerText = d.kelembaban || 0;
-        document.getElementById('val-ldr1').innerText = d.ldr_matahari || 0;
-        document.getElementById('val-ldr2').innerText = d.ldr_grow || 0;
-        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "HABIS";
-        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "PENUH" : "KURANG";
-
-        // Logic Aktuator Visual
-        const updateActuator = (id, statId, cond, color) => {
-            const box = document.getElementById(id);
-            if(!box) return;
-            box.style.borderLeftColor = cond ? color : '#ccc';
-            box.className = cond ? `card card-custom p-3 border-start border-4 bg-light shadow-sm` : `card card-custom p-3 border-start border-4`;
-            document.getElementById(statId).innerText = cond ? "ON" : "OFF";
-            document.getElementById(statId).className = cond ? "text-success" : "text-muted";
-        };
-        updateActuator('box-kipas', 'stat-kipas', d.suhu > 28, '#dc3545');
-        updateActuator('box-pompa', 'stat-pompa', d.water_lvl2 == 0 && d.water_lvl1 == 1, '#0d6efd');
-        updateActuator('box-grow', 'stat-grow', d.ldr_matahari > 2000, '#ffc107');
-
-        // Update Charts
-        updateChartData(c1, d.suhu, d.kelembaban, now);
-        updateChartData(c2, d.ldr_matahari, d.ldr_grow, now);
-        updateChartData(c3, d.water_lvl1, d.water_lvl2, now);
-
-        // Update Table
-        const row = `<tr><td>${now}</td><td>${d.suhu}</td><td>${d.kelembaban}</td><td>${d.ldr_matahari}</td><td>${d.ldr_grow}</td><td>${d.water_lvl1}</td><td>${d.water_lvl2}</td></tr>`;
-        const tbody = document.querySelector('#localTable tbody');
-        tbody.insertAdjacentHTML('afterbegin', row);
-        
-        // Simpan untuk CSV (maks 100 data session)
-        historyData.push([now, d.suhu, d.kelembaban, d.ldr_matahari, d.ldr_grow, d.water_lvl1, d.water_lvl2]);
-        if(historyData.length > 100) historyData.shift();
-    });
-
-    // --- 4. FUNCTIONS FOR BUTTONS ---
-    function controlLogging(st) { 
-        db.ref('settings').update({ isLogging: st }); 
-        alert("Logging: " + (st ? "Dinyalakan" : "Dimatikan")); 
-    }
-
-    function updateInterval() { 
-        const val = parseInt(document.getElementById('intInput').value);
-        if(val && val >= 1000) { 
-            db.ref('settings').update({ interval: val }); 
-            alert("Interval diperbarui ke: " + val + "ms"); 
-        } else {
-            alert("Masukkan angka minimal 1000ms!");
-        }
-    }
-
-    function downloadCSV() {
-        if(historyData.length === 0) return alert("Belum ada data untuk didownload!");
-        let csv = 'Time,Suhu,Humi,LDR_Sun,LDR_Grow,Water_Lt1,Water_Lt2\n';
-        historyData.forEach(r => csv += r.join(',') + '\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'Log_Caisim_IoT.csv'; a.click();
-    }
-</script>
-</body>
-</html>
+            scales: isStepped ? { y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (v) => v == 1 ? 'ADA' :
