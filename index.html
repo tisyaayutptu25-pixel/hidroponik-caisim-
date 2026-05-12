@@ -17,6 +17,15 @@
         .chart-container { position: relative; height: 280px; width: 100%; }
         .table-responsive { max-height: 350px; overflow-y: auto; border-radius: 10px; }
         .btn-action { border-radius: 10px; font-weight: 600; padding: 10px 20px; }
+        
+        /* Animasi Kipas Berputar */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-fan { animation: spin 2s linear infinite; display: inline-block; }
+        .status-on { color: #198754 !important; font-weight: bold; }
+        .status-off { color: #dc3545 !important; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -52,6 +61,30 @@
         <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-lightbulb text-secondary"></i><small class="text-muted d-block">LDR Grow</small><h3 id="val-ldr2">0</h3></div></div>
         <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-moisture text-info"></i><small class="text-muted d-block">Tandon Lt.1</small><h4 id="val-w1" class="fw-bold mt-2">--</h4></div></div>
         <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-water text-info"></i><small class="text-muted d-block">Tandon Lt.2</small><h4 id="val-w2" class="fw-bold mt-2">--</h4></div></div>
+    </div>
+
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4 col-12">
+            <div class="card card-custom p-3">
+                <i id="icon-fan" class="bi bi-fan fs-3 mb-1"></i>
+                <small class="text-muted d-block">Kipas (Fan)</small>
+                <h4 id="val-fan" class="mt-1 status-off">OFF</h4>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card card-custom p-3">
+                <i id="icon-pompa" class="bi bi-droplet-fill fs-3 mb-1 text-secondary"></i>
+                <small class="text-muted d-block">Pompa Air</small>
+                <h4 id="val-pompa" class="mt-1 status-off">OFF</h4>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card card-custom p-3">
+                <i id="icon-grow" class="bi bi-lightbulb-fill fs-3 mb-1 text-secondary"></i>
+                <small class="text-muted d-block">Growlight</small>
+                <h4 id="val-grow" class="mt-1 status-off">OFF</h4>
+            </div>
+        </div>
     </div>
 
     <div class="row mb-4">
@@ -139,12 +172,38 @@
         const now = new Date().toLocaleTimeString();
         document.getElementById('connection-status').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Connected: ${now}`;
         
+        // Data Sensor
         document.getElementById('val-suhu').innerText = d.suhu || 0;
         document.getElementById('val-humi').innerText = d.kelembaban || 0;
         document.getElementById('val-ldr1').innerText = d.ldr_matahari || 0;
         document.getElementById('val-ldr2').innerText = d.ldr_grow || 0;
         document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "HABIS";
         document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "PENUH" : "KURANG";
+
+        // Data Aktuator (Pembaruan Otomatis)
+        const updateStatus = (val, textId, iconId, type) => {
+            const elText = document.getElementById(textId);
+            const elIcon = document.getElementById(iconId);
+            const isON = (val === "ON" || val === 1 || val === true);
+            
+            if (isON) {
+                elText.innerText = "ON";
+                elText.className = "mt-1 status-on";
+                elIcon.className = (type === 'fan') ? "bi bi-fan fs-3 mb-1 text-success spin-fan" : 
+                                   (type === 'pompa') ? "bi bi-droplet-fill fs-3 mb-1 text-success" : 
+                                   "bi bi-lightbulb-fill fs-3 mb-1 text-success";
+            } else {
+                elText.innerText = "OFF";
+                elText.className = "mt-1 status-off";
+                elIcon.className = (type === 'fan') ? "bi bi-fan fs-3 mb-1 text-secondary" : 
+                                   (type === 'pompa') ? "bi bi-droplet-fill fs-3 mb-1 text-secondary" : 
+                                   "bi bi-lightbulb-fill fs-3 mb-1 text-secondary";
+            }
+        };
+
+        updateStatus(d.fan, 'val-fan', 'icon-fan', 'fan');
+        updateStatus(d.pompa, 'val-pompa', 'icon-pompa', 'pompa');
+        updateStatus(d.growlight, 'val-grow', 'icon-grow', 'grow');
 
         updateChartData(c1, d.suhu, d.kelembaban, now);
         updateChartData(c2, d.ldr_matahari, d.ldr_grow, now);
@@ -158,7 +217,6 @@
         if(historyData.length > 100) historyData.shift();
     });
 
-    // Fungsi Tombol
     function controlLogging(st) { 
         db.ref('settings').update({ isLogging: st }); 
         alert("Logging: " + (st ? "Dinyalakan" : "Dimatikan")); 
