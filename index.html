@@ -1,246 +1,246 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisim IoT Elite Pro</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .header-section { background: linear-gradient(135deg, #1d976c 0%, #07a3b2 100%); color: white; padding: 40px 0; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; background: white; }
-        .card-custom:hover { transform: translateY(-3px); }
-        .chart-container { position: relative; height: 280px; width: 100%; }
-        .table-responsive { max-height: 350px; overflow-y: auto; border-radius: 10px; }
-        .btn-action { border-radius: 10px; font-weight: 600; padding: 10px 20px; }
-        
-        /* Animasi Kipas Berputar */
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .spin-fan { animation: spin 2s linear infinite; display: inline-block; }
-        .status-on { color: #198754 !important; font-weight: bold; }
-        .status-off { color: #dc3545 !important; font-weight: bold; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caisim IoT Elite Pro</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .header-section { background: linear-gradient(135deg, #1d976c 0%, #07a3b2 100%); color: white; padding: 40px 0; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; background: white; }
+        .card-custom:hover { transform: translateY(-3px); }
+        .chart-container { position: relative; height: 280px; width: 100%; }
+        .table-responsive { max-height: 350px; overflow-y: auto; border-radius: 10px; }
+        .btn-action { border-radius: 10px; font-weight: 600; padding: 10px 20px; }
+        
+        /* Animasi Kipas Berputar */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-fan { animation: spin 2s linear infinite; display: inline-block; }
+        .status-on { color: #198754 !important; font-weight: bold; }
+        .status-off { color: #dc3545 !important; font-weight: bold; }
+    </style>
 </head>
 <body>
 
 <div class="header-section text-center mb-4">
-    <h2 class="fw-bold">Caisim IoT Elite Pro</h2>
-    <p>ESP32 Floor Control & Advanced Monitoring</p>
-    <div id="connection-status" class="badge bg-light text-dark shadow-sm p-2"><i class="bi bi-broadcast me-2"></i>Connecting to Firebase...</div>
+    <h2 class="fw-bold">Caisim IoT Elite Pro</h2>
+    <p>ESP32 Floor Control & Advanced Monitoring</p>
+    <div id="connection-status" class="badge bg-light text-dark shadow-sm p-2"><i class="bi bi-broadcast me-2"></i>Connecting to Firebase...</div>
 </div>
 
 <div class="container mb-5">
-    <div class="card card-custom p-4 mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-7 mb-3 mb-md-0">
-                <button onclick="controlLogging(true)" class="btn btn-success btn-action me-2"><i class="bi bi-play-fill"></i> START</button>
-                <button onclick="controlLogging(false)" class="btn btn-danger btn-action me-2"><i class="bi bi-stop-fill"></i> STOP</button>
-                <button onclick="downloadCSV()" class="btn btn-outline-primary btn-action"><i class="bi bi-file-earmark-spreadsheet"></i> DOWNLOAD CSV</button>
-            </div>
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-dark text-white border-0">Interval (ms)</span>
-                    <input type="number" id="intInput" class="form-control" placeholder="5000">
-                    <button onclick="updateInterval()" class="btn btn-dark">Update</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="card card-custom p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7 col-md-12 d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+                <button onclick="controlLogging(true)" class="btn btn-success btn-action d-inline-flex align-items-center shadow-sm"><i class="bi bi-play-fill me-1"></i> START</button>
+                <button onclick="controlLogging(false)" class="btn btn-danger btn-action d-inline-flex align-items-center shadow-sm"><i class="bi bi-stop-fill me-1"></i> STOP</button>
+                <button onclick="downloadCSV()" class="btn btn-outline-primary btn-action d-inline-flex align-items-center shadow-sm"><i class="bi bi-file-earmark-spreadsheet me-1"></i> DOWNLOAD CSV</button>
+            </div>
+            <div class="col-lg-5 col-md-12">
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-dark text-white border-0 px-3 fw-semibold" style="font-size: 0.9rem;">Interval (ms)</span>
+                    <input type="number" id="intInput" class="form-control border-1" placeholder="1800000" style="border-color: #dee2e6;">
+                    <button onclick="updateInterval()" class="btn btn-dark fw-semibold px-3">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="row g-3 mb-4 text-center">
-        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-thermometer-half text-danger"></i><small class="text-muted d-block">Suhu</small><h3 id="val-suhu">0</h3><small>°C</small></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-droplet-half text-primary"></i><small class="text-muted d-block">Lembap</small><h3 id="val-humi">0</h3><small>%</small></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-brightness-high text-warning"></i><small class="text-muted d-block">LDR Sun</small><h3 id="val-ldr1">0</h3></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-lightbulb text-secondary"></i><small class="text-muted d-block">LDR Grow</small><h3 id="val-ldr2">0</h3></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-moisture text-info"></i><small class="text-muted d-block">Tandon Lt.1</small><h4 id="val-w1" class="fw-bold mt-2">--</h4></div></div>
-        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-water text-info"></i><small class="text-muted d-block">Tandon Lt.2</small><h4 id="val-w2" class="fw-bold mt-2">--</h4></div></div>
-    </div>
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-thermometer-half text-danger fs-4 mb-1"></i><small class="text-muted d-block">Suhu</small><h3 id="val-suhu" class="fw-bold my-1">0</h3><small class="text-muted">°C</small></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-droplet-half text-primary fs-4 mb-1"></i><small class="text-muted d-block">Lembap</small><h3 id="val-humi" class="fw-bold my-1">0</h3><small class="text-muted">%</small></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-brightness-high text-warning fs-4 mb-1"></i><small class="text-muted d-block">LDR Sun</small><h3 id="val-ldr1" class="fw-bold my-1">0</h3><small class="text-muted">Lux</small></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-lightbulb text-secondary fs-4 mb-1"></i><small class="text-muted d-block">LDR Grow</small><h3 id="val-ldr2" class="fw-bold my-1">0</h3><small class="text-muted">Lux</small></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-moisture text-info fs-4 mb-1"></i><small class="text-muted d-block">Tandon Lt.1</small><h4 id="val-w1" class="fw-bold mt-2">--</h4></div></div>
+        <div class="col-md-2 col-6"><div class="card card-custom p-3"><i class="bi bi-water text-info fs-4 mb-1"></i><small class="text-muted d-block">Tandon Lt.2</small><h4 id="val-w2" class="fw-bold mt-2">--</h4></div></div>
+    </div>
 
-    <div class="row g-3 mb-4 text-center">
-        <div class="col-md-4 col-12">
-            <div class="card card-custom p-3">
-                <i id="icon-fan" class="bi bi-fan fs-3 mb-1"></i>
-                <small class="text-muted d-block">Kipas (Fan)</small>
-                <h4 id="val-fan" class="mt-1 status-off">OFF</h4>
-            </div>
-        </div>
-        <div class="col-md-4 col-12">
-            <div class="card card-custom p-3">
-                <i id="icon-pompa" class="bi bi-droplet-fill fs-3 mb-1 text-secondary"></i>
-                <small class="text-muted d-block">Pompa Air</small>
-                <h4 id="val-pompa" class="mt-1 status-off">OFF</h4>
-            </div>
-        </div>
-        <div class="col-md-4 col-12">
-            <div class="card card-custom p-3">
-                <i id="icon-grow" class="bi bi-lightbulb-fill fs-3 mb-1 text-secondary"></i>
-                <small class="text-muted d-block">Growlight</small>
-                <h4 id="val-grow" class="mt-1 status-off">OFF</h4>
-            </div>
-        </div>
-    </div>
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4 col-12">
+            <div class="card card-custom p-3">
+                <i id="icon-fan" class="bi bi-fan fs-3 mb-1 text-secondary"></i>
+                <small class="text-muted d-block">Kipas (Fan)</small>
+                <h4 id="val-fan" class="mt-1 status-off">OFF</h4>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card card-custom p-3">
+                <i id="icon-pompa" class="bi bi-droplet-fill fs-3 mb-1 text-secondary"></i>
+                <small class="text-muted d-block">Pompa Air</small>
+                <h4 id="val-pompa" class="mt-1 status-off">OFF</h4>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card card-custom p-3">
+                <i id="icon-grow" class="bi bi-lightbulb-fill fs-3 mb-1 text-secondary"></i>
+                <small class="text-muted d-block">Growlight</small>
+                <h4 id="val-grow" class="mt-1 status-off">OFF</h4>
+            </div>
+        </div>
+    </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Suhu & Kelembaban</h6><div class="chart-container"><canvas id="chartTH"></canvas></div></div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Intensitas Cahaya</h6><div class="chart-container"><canvas id="chartLDR"></canvas></div></div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2"></i>Status Air</h6><div class="chart-container"><canvas id="chartWater"></canvas></div></div>
-        </div>
-    </div>
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2 text-danger"></i>Suhu & Kelembaban</h6><div class="chart-container"><canvas id="chartTH"></canvas></div></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2 text-warning"></i>Intensitas Cahaya</h6><div class="chart-container"><canvas id="chartLDR"></canvas></div></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-custom p-3"><h6><i class="bi bi-graph-up me-2 text-info"></i>Status Air</h6><div class="chart-container"><canvas id="chartWater"></canvas></div></div>
+        </div>
+    </div>
 
-    <div class="card card-custom p-4 mb-4 shadow-sm text-center">
-        <h5 class="mb-3 fw-bold"><i class="bi bi-cloud-check me-2 text-success"></i>Permanent Database (Google Sheets)</h5>
-        <div class="py-3">
-            <p class="text-muted">Klik tombol di bawah ini untuk melihat rekaman data lengkap di Google Sheets:</p>
-            <a href="https://docs.google.com/spreadsheets/d/16UCvhVJ8LBI1Tv2oBsfQzxQ_pLW6AC5TDscDpSLAzsE/edit" target="_blank" class="btn btn-success btn-lg px-5 shadow-sm">
-                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Buka Database Google Sheets
-            </a>
-        </div>
-    </div>
+    <div class="card card-custom p-4 mb-4 shadow-sm text-center">
+        <h5 class="mb-3 fw-bold"><i class="bi bi-cloud-check me-2 text-success"></i>Permanent Database (Google Sheets)</h5>
+        <div class="py-3">
+            <p class="text-muted">Klik tombol di bawah ini untuk melihat rekaman data lengkap di Google Sheets:</p>
+            <a href="https://docs.google.com/spreadsheets/d/16UCvhVJ8LBI1Tv2oBsfQzxQ_pLW6AC5TDscDpSLAzsE/edit" target="_blank" class="btn btn-success btn-lg px-5 shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Buka Database Google Sheets
+            </a>
+        </div>
+    </div>
 
-    <div class="card card-custom p-4 mb-5">
-        <h5 class="mb-3"><i class="bi bi-table me-2"></i>Live Local Table (Sesi Ini)</h5>
-        <div class="table-responsive">
-            <table class="table table-hover table-striped" id="localTable">
-                <thead class="table-dark">
-                    <tr><th>Waktu</th><th>Suhu</th><th>Lembap</th><th>LDR Sun</th><th>LDR Grow</th><th>Lt.1</th><th>Lt.2</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
+    <div class="card card-custom p-4 mb-5">
+        <h5 class="mb-3"><i class="bi bi-table me-2"></i>Live Local Table (Sesi Ini)</h5>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="localTable">
+                <thead class="table-dark">
+                    <tr><th>Waktu</th><th>Suhu</th><th>Lembap</th><th>LDR Sun</th><th>LDR Grow</th><th>Lt.1</th><th>Lt.2</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
-    // Konfigurasi Firebase
-    const firebaseConfig = { 
-        databaseURL: "https://hidroponik-caisim-default-rtdb.asia-southeast1.firebasedatabase.app/" 
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // Konfigurasi Firebase
+    const firebaseConfig = { 
+        databaseURL: "https://hidroponik-caisim-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // Inisialisasi Grafik
-    const chartConfig = (id, label1, label2, color1, color2, isStepped) => new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { 
-            labels: [], 
-            datasets: [
-                { label: label1, data: [], borderColor: color1, backgroundColor: color1+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }, 
-                { label: label2, data: [], borderColor: color2, backgroundColor: color2+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }
-            ] 
-        },
-        options: { 
-            maintainAspectRatio: false, 
-            scales: isStepped ? { y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (v) => v == 1 ? 'ADA' : 'HABIS' } } } : {}
-        }
-    });
+    // Inisialisasi Grafik
+    const chartConfig = (id, label1, label2, color1, color2, isStepped) => new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { 
+            labels: [], 
+            datasets: [
+                { label: label1, data: [], borderColor: color1, backgroundColor: color1+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }, 
+                { label: label2, data: [], borderColor: color2, backgroundColor: color2+'22', fill: true, tension: isStepped ? 0 : 0.3, stepped: isStepped }
+            ] 
+        },
+        options: { 
+            maintainAspectRatio: false, 
+            scales: isStepped ? { y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (v) => v == 1 ? 'ADA' : 'HABIS' } } } : {}
+        }
+    });
 
-    const c1 = chartConfig('chartTH', 'Suhu (°C)', 'Humi (%)', '#dc3545', '#0d6efd', false);
-    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d', false);
-    const c3 = chartConfig('chartWater', 'Air Lt.1', 'Air Lt.2', '#0dcaf0', '#053af2', true);
+    const c1 = chartConfig('chartTH', 'Suhu (°C)', 'Humi (%)', '#dc3545', '#0d6efd', false);
+    const c2 = chartConfig('chartLDR', 'LDR Sun', 'LDR Grow', '#ffc107', '#6c757d', false);
+    const c3 = chartConfig('chartWater', 'Air Lt.1', 'Air Lt.2', '#0dcaf0', '#053af2', true);
 
-    let historyData = [];
+    let historyData = [];
 
-    const updateChartData = (c, v1, v2, time) => {
-        if(c.data.labels.length > 15) { 
-            c.data.labels.shift(); 
-            c.data.datasets[0].data.shift(); 
-            c.data.datasets[1].data.shift(); 
-        }
-        c.data.labels.push(time); 
-        c.data.datasets[0].data.push(v1); 
-        c.data.datasets[1].data.push(v2); 
-        c.update();
-    };
+    const updateChartData = (c, v1, v2, time) => {
+        if(c.data.labels.length > 15) { 
+            c.data.labels.shift(); 
+            c.data.datasets[0].data.shift(); 
+            c.data.datasets[1].data.shift(); 
+        }
+        c.data.labels.push(time); 
+        c.data.datasets[0].data.push(v1); 
+        c.data.datasets[1].data.push(v2); 
+        c.update();
+    };
 
-    // Listener Realtime Firebase
-    db.ref('sensor').on('value', (snap) => {
-        const d = snap.val();
-        if(!d) return;
-        
-        const now = new Date().toLocaleTimeString();
-        document.getElementById('connection-status').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Connected: ${now}`;
-        
-        // Data Sensor
-        document.getElementById('val-suhu').innerText = d.suhu || 0;
-        document.getElementById('val-humi').innerText = d.kelembaban || 0;
-        document.getElementById('val-ldr1').innerText = d.ldr_matahari || 0;
-        document.getElementById('val-ldr2').innerText = d.ldr_grow || 0;
-        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "HABIS";
-        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "PENUH" : "KURANG";
+    // Listener Realtime Firebase
+    db.ref('sensor').on('value', (snap) => {
+        const d = snap.val();
+        if(!d) return;
+        
+        const now = new Date().toLocaleTimeString();
+        document.getElementById('connection-status').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Connected: ${now}`;
+        
+        // Data Sensor
+        document.getElementById('val-suhu').innerText = d.suhu || 0;
+        document.getElementById('val-humi').innerText = d.kelembaban || 0;
+        document.getElementById('val-ldr1').innerText = d.ldr_matahari || 0;
+        document.getElementById('val-ldr2').innerText = d.ldr_grow || 0;
+        document.getElementById('val-w1').innerText = d.water_lvl1 == 1 ? "OK" : "HABIS";
+        document.getElementById('val-w2').innerText = d.water_lvl2 == 1 ? "PENUH" : "KURANG";
 
-        // Data Aktuator (Pembaruan Otomatis)
-        const updateStatus = (val, textId, iconId, type) => {
-            const elText = document.getElementById(textId);
-            const elIcon = document.getElementById(iconId);
-            const isON = (val === "ON" || val === 1 || val === true);
-            
-            if (isON) {
-                elText.innerText = "ON";
-                elText.className = "mt-1 status-on";
-                elIcon.className = (type === 'fan') ? "bi bi-fan fs-3 mb-1 text-success spin-fan" : 
-                                   (type === 'pompa') ? "bi bi-droplet-fill fs-3 mb-1 text-success" : 
-                                   "bi bi-lightbulb-fill fs-3 mb-1 text-success";
-            } else {
-                elText.innerText = "OFF";
-                elText.className = "mt-1 status-off";
-                elIcon.className = (type === 'fan') ? "bi bi-fan fs-3 mb-1 text-secondary" : 
-                                   (type === 'pompa') ? "bi bi-droplet-fill fs-3 mb-1 text-secondary" : 
-                                   "bi bi-lightbulb-fill fs-3 mb-1 text-secondary";
-            }
-        };
+        // Data Aktuator (Pembaruan Otomatis)
+        const updateStatus = (val, textId, iconId, type) => {
+            const elText = document.getElementById(textId);
+            const elIcon = document.getElementById(iconId);
+            const isON = (val === "ON" || val === 1 || val === true);
+            
+            if (isON) {
+                elText.innerText = "ON";
+                elText.className = "mt-1 status-on";
+                elIcon.className = (type === 'fan') ? "bi bi-fan fs-3 mb-1 text-success spin-fan" : 
+                                   (type === 'pompa') ? "bi bi-droplet-fill fs-3 mb-1 text-success" : 
+                                   "bi bi-lightbulb-fill fs-3 mb-1 text-success";
+            } else {
+                elText.innerText = "OFF";
+                elText.className = "mt-1 status-off";
+                elIcon.className = (type === 'fan') ? "bi bi-fan fs-3 mb-1 text-secondary" : 
+                                   (type === 'pompa') ? "bi bi-droplet-fill fs-3 mb-1 text-secondary" : 
+                                   "bi bi-lightbulb-fill fs-3 mb-1 text-secondary";
+            }
+        };
 
-        updateStatus(d.fan, 'val-fan', 'icon-fan', 'fan');
-        updateStatus(d.pompa, 'val-pompa', 'icon-pompa', 'pompa');
-        updateStatus(d.growlight, 'val-grow', 'icon-grow', 'grow');
+        updateStatus(d.fan, 'val-fan', 'icon-fan', 'fan');
+        updateStatus(d.pompa, 'val-pompa', 'icon-pompa', 'pompa');
+        updateStatus(d.growlight, 'val-grow', 'icon-grow', 'grow');
 
-        updateChartData(c1, d.suhu, d.kelembaban, now);
-        updateChartData(c2, d.ldr_matahari, d.ldr_grow, now);
-        updateChartData(c3, d.water_lvl1, d.water_lvl2, now);
+        updateChartData(c1, d.suhu, d.kelembaban, now);
+        updateChartData(c2, d.ldr_matahari, d.ldr_grow, now);
+        updateChartData(c3, d.water_lvl1, d.water_lvl2, now);
 
-        const row = `<tr><td>${now}</td><td>${d.suhu}</td><td>${d.kelembaban}</td><td>${d.ldr_matahari}</td><td>${d.ldr_grow}</td><td>${d.water_lvl1}</td><td>${d.water_lvl2}</td></tr>`;
-        const tbody = document.querySelector('#localTable tbody');
-        tbody.insertAdjacentHTML('afterbegin', row);
-        
-        historyData.push([now, d.suhu, d.kelembaban, d.ldr_matahari, d.ldr_grow, d.water_lvl1, d.water_lvl2]);
-        if(historyData.length > 100) historyData.shift();
-    });
+        const row = `<tr><td>${now}</td><td>${d.suhu}</td><td>${d.kelembaban}</td><td>${d.ldr_matahari}</td><td>${d.ldr_grow}</td><td>${d.water_lvl1}</td><td>${d.water_lvl2}</td></tr>`;
+        const tbody = document.querySelector('#localTable tbody');
+        tbody.insertAdjacentHTML('afterbegin', row);
+        
+        historyData.push([now, d.suhu, d.kelembaban, d.ldr_matahari, d.ldr_grow, d.water_lvl1, d.water_lvl2]);
+        if(historyData.length > 100) historyData.shift();
+    });
 
-    function controlLogging(st) { 
-        db.ref('settings').update({ isLogging: st }); 
-        alert("Logging: " + (st ? "Dinyalakan" : "Dimatikan")); 
-    }
+    function controlLogging(st) { 
+        db.ref('settings').update({ isLogging: st }); 
+        alert("Logging: " + (st ? "Dinyalakan" : "Dimatikan")); 
+    }
 
-    function updateInterval() { 
-        const val = parseInt(document.getElementById('intInput').value);
-        if(val && val >= 1000) { 
-            db.ref('settings').update({ interval: val }); 
-            alert("Interval diperbarui ke: " + val + "ms"); 
-        } else {
-            alert("Minimal 1000ms!");
-        }
-    }
+    function updateInterval() { 
+        const val = parseInt(document.getElementById('intInput').value);
+        if(val && val >= 1000) { 
+            db.ref('settings').update({ interval: val }); 
+            alert("Interval diperbarui ke: " + val + "ms"); 
+        } else {
+            alert("Minimal 1000ms!");
+        }
+    }
 
-    function downloadCSV() {
-        if(historyData.length === 0) return alert("Belum ada data!");
-        let csv = 'Time,Suhu,Humi,LDR_Sun,LDR_Grow,Water_Lt1,Water_Lt2\n';
-        historyData.forEach(r => csv += r.join(',') + '\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'Log_Caisim.csv'; a.click();
-    }
+    function downloadCSV() {
+        if(historyData.length === 0) return alert("Belum ada data!");
+        let csv = 'Time,Suhu,Humi,LDR_Sun,LDR_Grow,Water_Lt1,Water_Lt2\n';
+        historyData.forEach(r => csv += r.join(',') + '\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'Log_Caisim.csv'; a.click();
+    }
 </script>
 </body>
 </html>
